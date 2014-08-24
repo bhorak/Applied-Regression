@@ -26,7 +26,13 @@ data$carb<-carburetors
 ```
 
 ## Executive Summary
-The purpose of this paper is to examine the effects of a variety of car related features on the miles per gallon performance of a vehicle. In order to convincingly illustrate the effects of factors on the car's gaes mileage a variety of statistical tools will be employed, using the native "mtcars" data provided with R. This paper will examine all factors provided in the data set, however the focus will lie on the type of transmission the car has equiped. There are two types of transmissions Manual and Automatic, this paper will exame which is better or wether the differences between the two statistically insignificant given the provided data. In our analysis we will use a significance level of 5.
+The purpose of this paper is to examine the effects of a variety of car related features on the miles per gallon 
+performance of a vehicle. In order to convincingly illustrate the effects of factors on the car's 
+gaes mileage a variety of statistical tools will be employed, using the native "mtcars" data 
+provided with R. This paper will examine all factors provided in the data set, however the focus will lie on the type of transmission the car has equiped. There are two types of transmissions Manual and Automatic,
+this paper will exame 
+which is better or wether the differences between the two statistically insignificant 
+given the provided data. In our analysis we will use a significance level of 5.
 
 
 ## Exploratory Analysis 
@@ -45,11 +51,20 @@ sense of the relationship. You can see the plots in figure 1. We can tell that a
 the weight(wt), the displacement(disp) and horsepower(hp) increase the mpg tends to 
 decrease. The opposite is true for the ear axle ratio(drat) and quarter mile time(qsec).
 
-For discrete variables, a series of bar plots (figure 2) were used. The bar plots show the mean mpg for each variable seperated by the factors in that variable. I also, included an error range which corresponds to a one deviation shift in the standard error of the mean. Please note, the carb variable has very few observation inclduded therefore any comparative anylysis between the factors is sure to be unreliable, so it will be ignored from now on.
+For discrete variables, a series of bar plots (figure 2) were used. 
+The bar plots show the mean mpg for each variable seperated by the factors in that variable.
+I also, included an error range which corresponds to a one deviation shift in the standard error of the mean.
+Please note, the carb variable has very few observation inclduded therefore any comparative anylysis 
+between the factors is sure to be unreliable, so it will be ignored from now on.
 
 ## Analysis
 
-For the regression analysis the discrete variables were coded as factor variables. The regression system in R automaticaly converts these factor variables into dummy's. For example, the regression will treat the automatic transmission as a 0, in other words the base case, and the manual transmission is treated as a 1. So from looking at our boxplots we can expect the slope coefficient to be positive.
+For the regression analysis the discrete variables were coded as factor variables. 
+The regression system in R automaticaly converts these factor variables into dummy's. 
+For example, the regression will treat the automatic transmission as a 0, in other 
+words the base case, and the manual transmission is treated as a 1. So from looking at 
+our boxplots we can expect the slope 
+coefficient to be positive.
 
 ### Regression 1
 
@@ -59,9 +74,19 @@ rsq1<-summary(fit1)$r.squared
 
 ```
 
-To get things started I did a multiple regression across all variables except carb. The summary of coefficients is provided in figure 4. The R-squared ended up being `r rsq1`, which is quite high. However, the p-values of the T-tests on wether or not the coefficients calculated by the regression are significant or not are all extremely high and not close to a reasonable significance level of 5%. This likely means that there are confounding variables which are not adding any explanatory power to our analysis. Note: according to the significance level used in order for variable coefficient to be statistically significant the p value of the test has to be less than 5%.
+To get things started I did a multiple regression across all variables except carb. 
+The summary of coefficients is provided in figure 4. The R-squared ended up being `r rsq1`, 
+which is quite high. However, the p-values of the T-tests on wether or not the coefficients 
+calculated by the regression are significant or not are all extremely high and not close to a 
+reasonable significance level of 5%. This likely means that there are confounding variables 
+which are not adding any explanatory power to our analysis. Note: according to the significance 
+level used in order for variable coefficient to be statistically significant the p value of the 
+test has to be less than 5%.
 
-In order to weed out these confounding variables a correlation matrix was created. Variables that have really high or really low correlations have a high likelihood of being the culprits. Each time a potential confounding variable was excluded a new regression was run to see whether results improved.
+In order to weed out these confounding variables a correlation matrix was created. Variables 
+that have really high or really low correlations have a high likelihood of being the culprits. 
+Each time a potential confounding variable was excluded a new regression was run to see whether 
+results improved.
 
 
 ### Regression 2
@@ -71,7 +96,11 @@ rsq2<-summary(fit2)$r.squared
 
 ```
 
-Looking at the correletation matrix it can be seen that disp and wt have a high a high correlation. Displacement was removed and a new regression was created. The summary of which can be seen figure 5. As can be seen removing the displacemendid not cause the R^2 to decrease by much, it is now `r rsq2`, however our P values have decreased somewaht, however they are still  unsatifactory.
+Looking at the correletation matrix it can be seen that disp and wt have a high a high 
+correlation. Displacement was removed and a new regression was created. The summary of which 
+can be seen figure 5. As can be seen removing the displacemendid not cause the R^2 to decrease 
+by much, it is now `r rsq2`, however our P values have decreased somewaht, however they are still 
+unsatifactory.
 
 
 ### Regressions 4-Final
@@ -80,15 +109,31 @@ fit_final<-lm(mpg~hp+am,data=data)
 rsq3<-summary(fit_final)$r.squared
 
 ```
-In the interest of brevity I repeated the process until the p values of the model seemed reasonable. I ended up removing the all but "am"" and "wt"" variables. The results of which can be seen in Figure 7. We can see that both of the P values resulting from the T-test are effectively 0 meaning that they are statistically significant. At this point we can be reasonably certain that low horsepower vehicles with manual transmissions tend to be more gas efficient. The final R^2 is `r rsq3`. This regression model stipulates that a one unit increase horsepower ( everythin else held constant) will result in a 0.0589 decrease in mpg. Similarly going from automatic to manual you can expect to see a 5.2777 increase in mpg. The intercept in this case doesn't mean much as a car with an automatic transmission and no horspower is not really a car. If I had more time and space I could'va transformed the hp variable in order to get a more meaningful intercept coefficient. 
+In the interest of brevity I repeated the process until the p values of the model 
+seemed reasonable. I ended up removing the all but "am"" and "wt"" variables. 
+The results of which can be seen in Figure 7. We can see that both of the P values 
+resulting from the T-test are effectively 0 meaning that they are statistically significant. 
+At this point we can be reasonably certain that low horsepower vehicles with manual 
+transmissions tend to be more gas efficient. The final R^2 is `r rsq3`. This regression 
+model stipulates that a one unit increase horsepower ( everythin else held constant) will 
+result in a 0.0589 decrease in mpg. Similarly going from automatic to manual you can expect
+to see a 5.2777 increase in mpg. The intercept in this case doesn't mean much as a car with
+an automatic transmission and no horspower is not really a car. If I had more time and space
+I could'va transformed the hp variable in order to get a more meaningful intercept coefficient. 
 
 ### Residual Analysis
 
-From the residual plots figures 9 and 10 it can be seen that there is no obvious pattern to the variables, and it really does look quite random. Thus, we can be reasonably sure that our model is at least partially correct. Diagnostically speaking, the final model seems good.
+From the residual plots figures 9 and 10 it can be seen that there is no obvious pattern to the variables,
+and it really does look quite random. Thus, we can be reasonably sure that our model is at 
+least partially correct. Diagnostically speaking, the final model seems good.
 
 ### Conclusion
 
-To answer the initial question, the transmission type does have a statistically significant effect on the mpg performance of a vehicle. Both the exploratory and the regression analysis confirm that the manual transmission is more gas efficient than the automatic. In conclusion, the final model ended up consisting of one continous variable(weight) and one discrete variable(am). Both the intercepts and the coeficients were statistically significant.  
+To answer the initial question, the transmission type does have a statistically significant effect 
+on the mpg performance of a vehicle. Both the exploratory and the regression analysis confirm that 
+the manual transmission is more gas efficient than the automatic. In conclusion, the final model 
+ended up consisting of one continous variable(weight) and one discrete variable(am). Both the 
+intercepts and the coeficients were statistically significant.  
       
 
 For the RMD file that generated this report please refer to my [Github repo.](https://github.com/bhorak/Applied-Regression)
