@@ -4,6 +4,13 @@ author: "Bohdan Horak"
 date: "Friday, August 22, 2014"
 output: pdf_document
 ---
+```{r,echo=FALSE,include=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE,message=FALSE,results = "asis") 
+library(datasets); data(mtcars); library(stats); library(graphics);
+library(gridExtra);library(ggplot2);library(xtable)
+```
+
 ```{r, echo=FALSE,include=FALSE}
 transmission<-factor(mtcars$am,labels=c("Automatic","Manual"))
 cylinders<-factor(mtcars$cyl,labels=c("4","6","8"))
@@ -16,59 +23,81 @@ data$cyl<-cylinders
 data$vs<-vs
 data$gear<-gear
 data$carb<-carburetors
-library(datasets); data(mtcars); library(stats); library(graphics)
-library(gridExtra);
-library(ggplot2);
 ```
 
 ## Executive Summary
-The purpose of this paper is to examine the effects of a variety of car related features on the miles per gallon performance of a vehicle.
-In order to convincingly illustrate the effects of factors on the car's gaes mileage a variety of statistical tools will be employed, using the
-native "mtcars" data provided with R. This paper will examine all factors provided in the data set, however the focus will lie on the
-type of transmission the car has equiped. There are two types of transmissions Manual and Automatic, this paper will exame which is better
-or wether the differences between the two statistically insignificant given the provided data. 
+The purpose of this paper is to examine the effects of a variety of car related features on the miles per gallon performance of a vehicle. In order to convincingly illustrate the effects of factors on the car's gaes mileage a variety of statistical tools will be employed, using the native "mtcars" data provided with R. This paper will examine all factors provided in the data set, however the focus will lie on the type of transmission the car has equiped. There are two types of transmissions Manual and Automatic, this paper will exame which is better or wether the differences between the two statistically insignificant given the provided data. In our analysis we will use a significance level of 5.
 
 
 ## Exploratory Analysis 
-
-### Data Description
-
-The description of the variables, provided by the R help files.
-```{r,echo=FALSE}
-Variable<-colnames(data)
-Description<-c("Miles/(US) gallon","Number of cylinders","Displacement (cu.in.)",
-        "Gross horsepower","Rear axle ratio","Weight (lb/1000)","1/4 mile time",
-        "V/S","Transmission (0 = automatic, 1 = manual)","Number of forward gears",
-        "Number of carburetors")
-desc<-data.frame(Variable,Description)
-desc
-```
-
-In order to perform the exploratory analysis I split the variables into two camps, continous and discrete. 
+In order to perform the exploratory analysis the variables were into two camps, continuous and discrete. The table below summarizes which variables are continuous and which are discrete.
 
 ```{r,echo=FALSE}
 Discrete<-c("cyl","vs","am","gear","carb","")
 Continous<-c("mpg","disp","hp","drat","wt","qsec")
 vars<-data.frame(Continous,Discrete)
-vars
+print(xtable(vars),comment=F)
 ```
+
 
 For continous variables I used basic scatter plots with a fitted line to get a 
 sense of the relationship. You can see the plots in figure 1. We can tell that as
-the weight(wt), the displacement(disp) and Horsepower(hp) increase the mpg tends to 
-decrease. The opposite is true for the Rear axle ratio(drat) and quarter mile time(qsec).
+the weight(wt), the displacement(disp) and horsepower(hp) increase the mpg tends to 
+decrease. The opposite is true for the ear axle ratio(drat) and quarter mile time(qsec).
 
-For discrete variable I used a series of bar plots(figure 2). The bar plots show the mean mpg for each variable seperated by factors. I also, included an error range which corresponds to a one deviation shift in the standard error of the mean. Please note, the carb variable has very few observation inclduded therefore any comparative anylysis between the factors is sure to be unreliable, so it will be ignored from now on. From looking ath these plots it seems like a higher
+For discrete variables, a series of bar plots (figure 2) were used. The bar plots show the mean mpg for each variable seperated by the factors in that variable. I also, included an error range which corresponds to a one deviation shift in the standard error of the mean. Please note, the carb variable has very few observation inclduded therefore any comparative anylysis between the factors is sure to be unreliable, so it will be ignored from now on.
 
-## Regressions
+## Analysis
 
-## Conclusion
+For the regression analysis the discrete variables were coded as factor variables. The regression system in R automaticaly converts these factor variables into dummy's. For example, the regression will treat the automatic transmission as a 0, in other words the base case, and the manual transmission is treated as a 1. So from looking at our boxplots we can expect the slope coefficient to be positive.
+
+### Regression 1
+
+```{r}
+fit1<-lm(mpg~cyl+disp+hp+drat+wt+qsec+vs+am+gear,data=data)
+rsq1<-summary(fit1)$r.squared
+
+```
+
+To get things started I did a multiple regression across all variables except carb. The summary of coefficients is provided in figure 4. The R-squared ended up being `r rsq1`, which is quite high. However, the p-values of the T-tests on wether or not the coefficients calculated by the regression are significant or not are all extremely high and not close to a reasonable significance level of 5%. This likely means that there are confounding variables which are not adding any explanatory power to our analysis. Note: according to the significance level used in order for variable coefficient to be statistically significant the p value of the test has to be less than 5%.
+
+In order to weed out these confounding variables a correlation matrix was created. Variables that have really high or really low correlations have a high likelihood of being the culprits. Each time a potential confounding variable was excluded a new regression was run to see whether results improved.
+
+
+### Regression 2
+```{r}
+fit2<-lm(mpg~cyl+hp+drat+wt+qsec+vs+am+gear,data=data)
+rsq2<-summary(fit2)$r.squared
+
+```
+
+Looking at the correletation matrix it can be seen that disp and wt have a high a high correlation. Displacement was removed and a new regression was created. The summary of which can be seen figure 5. As can be seen removing the displacemendid not cause the R^2 to decrease by much, it is now `r rsq2`, however our P values have decreased somewaht, however they are still  unsatifactory.
+
+
+### Regressions 4-Final
+```{r}
+fit_final<-lm(mpg~hp+am,data=data)
+rsq3<-summary(fit_final)$r.squared
+
+```
+In the interest of brevity I repeated the process until the p values of the model seemed reasonable. I ended up removing the all but "am"" and "wt"" variables. The results of which can be seen in Figure 7. We can see that both of the P values resulting from the T-test are effectively 0 meaning that they are statistically significant. At this point we can be reasonably certain that low horsepower vehicles with manual transmissions tend to be more gas efficient. The final R^2 is `r rsq3`. This regression model stipulates that a one unit increase horsepower ( everythin else held constant) will result in a 0.0589 decrease in mpg. Similarly going from automatic to manual you can expect to see a 5.2777 increase in mpg. The intercept in this case doesn't mean much as a car with an automatic transmission and no horspower is not really a car. If I had more time and space I could'va transformed the hp variable in order to get a more meaningful intercept coefficient. 
+
+### Residual Analysis
+
+From the residual plots figures 9 and 10 it can be seen that there is no obvious pattern to the variables, and it really does look quite random. Thus, we can be reasonably sure that our model is at least partially correct. Diagnostically speaking, the final model seems good.
+
+### Conclusion
+
+To answer the initial question, the transmission type does have a statistically significant effect on the mpg performance of a vehicle. Both the exploratory and the regression analysis confirm that the manual transmission is more gas efficient than the automatic. In conclusion, the final model ended up consisting of one continous variable(weight) and one discrete variable(am). Both the intercepts and the coeficients were statistically significant.  
+      
+
+For the RMD file that generated this report please refer to my [Github repo.](https://github.com/bhorak/Applied-Regression)
 
 ## Appendix
 
 ### Figure 1: 
 
-```{r Figure_1,echo=FALSE}
+```{r Figure_1,echo=FALSE,fig.width=7,fig.height=4,dpi=200}
 
 
 plot1<-qplot(wt,mpg,data=data)+geom_smooth(method = "lm")+ggtitle("MPG vs Weight")
@@ -84,7 +113,7 @@ grid.arrange(plot1,plot2,plot3,plot4,plot5,ncol=3)
 
 
 ### Figure 2:
-```{r, echo=FALSE,fig.height=6}
+```{r, echo=FALSE,fig.height=4,fig.width=5,dpi=200}
 ## define function
 std<-function(x) sd(x)/sqrt(length(x))
 inter<-function(x,y) {
@@ -93,7 +122,6 @@ inter<-function(x,y) {
     for (i in 1:length(x$mpg)) {
         x$lower[i]<-x$mpg[i]-y$mpg[i]
         x$upper[i]<-x$mpg[i]+y$mpg[i]
-        
     }
     x
 }
@@ -105,9 +133,10 @@ data_3<-aggregate(mpg~am,std,data=data)
 data_2<-inter(data_2,data_3)
 
 ## barplot 1
-barplot1 <- qplot(x=Transmission, y=mpg, fill=Transmission,data=data_2, geom="bar", stat="identity",position="dodge")
+barplot1 <- qplot(x=Transmission, y=mpg, fill=Transmission,data=data_2, geom="bar", stat="identity",position="dodge",
+                  width=0.4)
 barplot1<- barplot1 + geom_errorbar(aes(ymax=upper, ymin=lower), position=position_dodge(0.9),data=data_2) + 
-    ggtitle("Average MPG by Transmission") + guides(fill=FALSE)
+    ggtitle("Average MPG by AM") + guides(fill=FALSE)
 
 ## data for plot 2
 data_2<-aggregate(mpg~cyl,mean,data=data)
@@ -116,9 +145,9 @@ data_3<-aggregate(mpg~cyl,std,data=data)
 data_2<-inter(data_2,data_3)
 
 ## barplot 2
-barplot2 <- qplot(x=Cylinders, y=mpg, fill=Cylinders,data=data_2, geom="bar", stat="identity",position="dodge")
+barplot2 <- qplot(x=Cylinders, y=mpg, fill=Cylinders,data=data_2, geom="bar", stat="identity",position="dodge",width=.5)
 barplot2<- barplot2 + geom_errorbar(aes(ymax=upper, ymin=lower), position=position_dodge(0.9),data=data_2) + 
-    ggtitle("Average MPG by Cylinders") + guides(fill=FALSE)
+    ggtitle("Average MPG by Cyl") + guides(fill=FALSE)
 
 
 ## data for plot 3
@@ -128,7 +157,7 @@ data_3<-aggregate(mpg~vs,std,data=data)
 data_2<-inter(data_2,data_3)
 
 ## barplot 3
-barplot3 <- qplot(x=VS, y=mpg, fill=VS,data=data_2, geom="bar", stat="identity",position="dodge")
+barplot3 <- qplot(x=VS, y=mpg, fill=VS,data=data_2, geom="bar", stat="identity",position="dodge",width=.4)
 barplot3<- barplot3 + geom_errorbar(aes(ymax=upper, ymin=lower), position=position_dodge(0.9),data=data_2) + 
     ggtitle("Average MPG by VS") + guides(fill=FALSE)
 
@@ -139,7 +168,7 @@ data_3<-aggregate(mpg~gear,std,data=data)
 data_2<-inter(data_2,data_3)
 
 ## barplot 4
-barplot4 <- qplot(x=Gears, y=mpg, fill=Gears,data=data_2, geom="bar", stat="identity",position="dodge")
+barplot4 <- qplot(x=Gears, y=mpg, fill=Gears,data=data_2, geom="bar", stat="identity",position="dodge",width=.5)
 barplot4<- barplot4 + geom_errorbar(aes(ymax=upper, ymin=lower), position=position_dodge(0.9),data=data_2) + 
     ggtitle("Average MPG by Gears") + guides(fill=FALSE)
 
@@ -151,20 +180,59 @@ data_3<-aggregate(mpg~gear,std,data=data)
 data_2<-inter(data_2,data_3)
 
 ## barplot 4
-barplot4 <- qplot(x=Gears, y=mpg, fill=Gears,data=data_2, geom="bar", stat="identity",position="dodge")
+barplot4 <- qplot(x=Gears, y=mpg, fill=Gears,data=data_2, geom="bar", stat="identity",position="dodge",width=.5)
 barplot4<- barplot4 + geom_errorbar(aes(ymax=upper, ymin=lower), position=position_dodge(0.9),data=data_2) + 
     ggtitle("Average MPG by Gears") + guides(fill=FALSE)
 grid.arrange(barplot1,barplot2,barplot3,barplot4,ncol=2)
 
 ```
 
+### Figure 3: Regression #1
 
-### Figure 3:
+R-squared of the first model is `r rsq1`.
 
+```{r,fig.width=3.5,fig.height=2}
+print(xtable(summary(fit1)),comment=F)
+```
 
+### Figure 4: Covariance Matrix
 
+```{r,fig.height=2}
+print(xtable(cov2cor(cov(mtcars))),comment=F)
+```
 
+### Figure 5: Regression #2  
 
+R-squared of the second model is `r rsq2`.
+
+```{r}
+print(xtable(summary(fit2)),comment=F)
+```
+       
+
+### Figure 6: Regression Final  
+
+R-squared of the final model is `r rsq3`.
+  
+```{r}
+print(xtable(summary(fit_final)),comment=F)
+
+```
+
+### Figure 7: Residuals
+```{r,fig.width=6.5,dpi=200,fig.height=3}
+fit_final<-lm(mpg~am+hp,data=data)
+plot_r1<-qplot(hp,resid(fit_final),data=data)+ggtitle("Residuals vs HP")
+plot_r2<-qplot(am,resid(fit_final),data=data)+ggtitle("Residuals vs Transmission")
+grid.arrange(plot_r1,plot_r2,ncol=2)
+```
+
+### Figure 8: Residuals vs Fitted
+
+```{r,dpi=200,fig.height=3,fig.width=3.5}
+fit_final<-lm(mpg~am+hp,data=data)
+ qplot(predict(fit_final),resid(fit_final))+ggtitle("Residuals Plot")
+```
 
 
 
