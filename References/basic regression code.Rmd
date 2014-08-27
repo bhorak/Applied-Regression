@@ -1,0 +1,90 @@
+---
+title: "Reference Code for Regressions"
+author: "Bohdan Horak"
+date: "Tuesday, August 26, 2014"
+output: pdf_document
+---
+
+
+
+
+### Standard Regression
+Getting things started
+Using mtcars data set. 
+
+```{r}
+library(knitr) ## have to call this before setting global knit options
+opts_chunk$set(message=FALSE,results = "asis") 
+data(mtcars)
+library(xtable) ## <- pretty tables
+
+```
+
+Using mtcars data set. 
+
+```{r}
+fit<-lm(mpg~wt,data=mtcars) ## fir is "lm" class
+summary(fit)            ## Returns the regression coefficients, 
+                        ## hypothesis tests and some residual analysis
+```
+
+**Getting Prettier Results**
+
+```{r}
+print(xtable(summary(fit)),comment=F) ## Returns a nicer looking 
+                                      ## table of the coefficients.  
+
+```
+
+
+
+You can also subset the summary to get at more specfic results
+
+
+```{r}
+coef<-summary(fit)$coefficients
+residuals<-summary(fit)$coefficents
+
+names(summary(fit))                 ## Full list of names
+
+```
+
+### Behavior of dummy variables
+
+Factor variables will automatically be treated as dummys. The lowest "factor" variable
+will automatically be the base case. Example cyl is a factor variable
+
+
+```{r}
+fit2<-lm(mpg~factor(cyl),data=mtcars)
+print(xtable(summary(fit2)),comment=F)
+
+```
+
+### Functions of variables - linear transformation/scaling/demeaning
+
+```{r}
+fit3<-lm(mpg~I(3+wt*5),data=mtcars) ## notice the capital I
+print(xtable(summary(fit3)),comment=F)
+
+```
+
+**or**
+
+```{r}
+fit4<-lm(I(mpg*2)~wt,data=mtcars)
+print(xtable(summary(fit4)),comment=F)
+
+```
+
+-------
+
+
+### Anova
+
+```{r}
+print(xtable(anova(fit)),comment=F)
+
+```
+
+
