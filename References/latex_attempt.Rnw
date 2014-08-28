@@ -1,101 +1,78 @@
----
-title: "Reference Code for Regressions"
-author: "Bohdan Horak"
-date: "Tuesday, August 26, 2014"
-output: pdf_document
----
+\documentclass{article}
+\usepackage{subfig}
+\usepackage{graphicx}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
 
+\section*{Standard Regression}
+Getting things started  
 
-
-
-### Standard Regression
-Getting things started
-Using mtcars data set. 
-
-```{r}
-library(knitr) ## have to call this before setting global knit options
-opts_chunk$set(message=FALSE,results = "asis") 
+<<example,eval=TRUE>>=
+library(knitr) ## have to call this before setting global knit options 
 data(mtcars)
-library(xtable) ## <- pretty tables
+library(xtable)
+@
 
-```
-
-Using mtcars data set. 
-
-```{r}
+<<fit>>=
 fit<-lm(mpg~wt,data=mtcars) ## fir is "lm" class
 summary(fit)            ## Returns the regression coefficients, 
-                        ## hypothesis tests and some residual analysis
-```
+                        ## 
+@
 
-**Getting Prettier Results**
+Outputs hypothesis tests and some residual analysis
 
-```{r}
-print(xtable(summary(fit)),comment=F) ## Returns a nicer looking 
-                                      ## table of the coefficients.  
+\subsubsection*{Getting Prettier Results}
+Use xtable package
 
-```
+<<xtable,results=tex>>=
+print(xtable(summary(fit))) ## Returns a nicer looking table
+@
 
-
+\newpage
 
 You can also subset the summary to get at more specfic results
 
-
-```{r}
+<<subset>>=
 coef<-summary(fit)$coefficients
 residuals<-summary(fit)$coefficents
-
 names(summary(fit))                 ## Full list of names
+@
 
-```
 
-### Behavior of dummy variables
-
+\subsubsection*{Behaviour of Dummy Variables}
 Factor variables will automatically be treated as dummys. The lowest "factor" variable
 will automatically be the base case. Example cyl is a factor variable
 
-
-```{r}
+<<dummy,results=tex>>=
 fit2<-lm(mpg~factor(cyl),data=mtcars)
 print(xtable(summary(fit2)),comment=F)
+@
+\subsubsection*{Regressions on Functions of Variables}
+<<transform,results=tex>>=
 
-```
-
-### Functions of variables - linear transformation/scaling/demeaning
-
-```{r}
 fit3<-lm(mpg~I(3+wt*5),data=mtcars) ## notice the capital I
 print(xtable(summary(fit3)),comment=F)
-
-```
-
-**or**
-
-```{r}
+@
+\textbf{or}
+<<ytrans,results=tex>>=
 fit4<-lm(I(mpg*2)~wt,data=mtcars)
 print(xtable(summary(fit4)),comment=F)
+@
 
-```
+\newpage
 
--------
-
-
-### Anova
-
-```{r}
+\subsubsection*{Anova}
+<<anova,results=tex>>=
 print(xtable(anova(fit)),comment=F)
-
-```
-
-
-
-*******************************************  
-
-### Confidence Intervals for regression estimators  
+@
 
 
 
-```{r}
+\subsubsection*{Confidence Intervals about Estimators}
+
+
+<<conf>>=
+
 sumCoef <- summary(fit)$coefficients
 ## for the intercept
 sumCoef[1,1] + c(-1, 1) * qt(.975, df = fit$df) * sumCoef[1, 2]
@@ -103,7 +80,8 @@ sumCoef[1,1] + c(-1, 1) * qt(.975, df = fit$df) * sumCoef[1, 2]
 sumCoef[2,1] + c(-1, 1) * qt(.975, df = fit$df) * sumCoef[2, 2]
 
 
+@
 
 
-```
 
+\end{document}
