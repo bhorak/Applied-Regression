@@ -2,7 +2,7 @@
 title: "Applied Regression Course Project"
 author: "Bohdan Horak"
 date: "Friday, August 22, 2014"
-output: pdf_document
+output: html_document
 ---
 ```{r,echo=FALSE,include=FALSE}
 library(knitr)

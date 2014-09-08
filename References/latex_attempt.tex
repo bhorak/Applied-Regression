@@ -1,0 +1,193 @@
+\documentclass{article}
+\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{Sweave}
+\begin{document}
+\input{latex_attempt-concordance}
+
+\section*{Standard Regression}
+Getting things started  
+
+\begin{Schunk}
+\begin{Sinput}
+> library(knitr) ## have to call this before setting global knit options 
+> data(mtcars)
+> library(xtable)
+\end{Sinput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> fit<-lm(mpg~wt,data=mtcars) ## fir is "lm" class
+> summary(fit)            ## Returns the regression coefficients, 
+\end{Sinput}
+\begin{Soutput}
+Call:
+lm(formula = mpg ~ wt, data = mtcars)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.5432 -2.3647 -0.1252  1.4096  6.8727 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  37.2851     1.8776  19.858  < 2e-16 ***
+wt           -5.3445     0.5591  -9.559 1.29e-10 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 3.046 on 30 degrees of freedom
+Multiple R-squared:  0.7528,	Adjusted R-squared:  0.7446 
+F-statistic: 91.38 on 1 and 30 DF,  p-value: 1.294e-10
+\end{Soutput}
+\begin{Sinput}
+>                         ## 
+\end{Sinput}
+\end{Schunk}
+
+Outputs hypothesis tests and some residual analysis
+
+\subsubsection*{Getting Prettier Results}
+Use xtable package
+
+\begin{Schunk}
+\begin{Sinput}
+> print(xtable(summary(fit))) ## Returns a nicer looking table
+\end{Sinput}
+% latex table generated in R 3.1.1 by xtable 1.7-3 package
+% Sun Sep 07 21:13:38 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 37.2851 & 1.8776 & 19.86 & 0.0000 \\ 
+  wt & -5.3445 & 0.5591 & -9.56 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\end{table}\end{Schunk}
+
+\newpage
+
+You can also subset the summary to get at more specfic results
+
+\begin{Schunk}
+\begin{Sinput}
+> coef<-summary(fit)$coefficients
+> residuals<-summary(fit)$coefficents
+> names(summary(fit))                 ## Full list of names
+\end{Sinput}
+\begin{Soutput}
+ [1] "call"          "terms"         "residuals"     "coefficients" 
+ [5] "aliased"       "sigma"         "df"            "r.squared"    
+ [9] "adj.r.squared" "fstatistic"    "cov.unscaled" 
+\end{Soutput}
+\end{Schunk}
+
+
+\subsubsection*{Behaviour of Dummy Variables}
+Factor variables will automatically be treated as dummys. The lowest "factor" variable
+will automatically be the base case. Example cyl is a factor variable
+
+\begin{Schunk}
+\begin{Sinput}
+> fit2<-lm(mpg~factor(cyl),data=mtcars)
+> print(xtable(summary(fit2)),comment=F)
+\end{Sinput}
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 26.6636 & 0.9718 & 27.44 & 0.0000 \\ 
+  factor(cyl)6 & -6.9208 & 1.5583 & -4.44 & 0.0001 \\ 
+  factor(cyl)8 & -11.5636 & 1.2986 & -8.90 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\end{table}\end{Schunk}
+\subsubsection*{Regressions on Functions of Variables}
+\begin{Schunk}
+\begin{Sinput}
+> fit3<-lm(mpg~I(3+wt*5),data=mtcars) ## notice the capital I
+> print(xtable(summary(fit3)),comment=F)
+\end{Sinput}
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 40.4918 & 2.2011 & 18.40 & 0.0000 \\ 
+  I(3 + wt * 5) & -1.0689 & 0.1118 & -9.56 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\end{table}\end{Schunk}
+\textbf{or}
+\begin{Schunk}
+\begin{Sinput}
+> fit4<-lm(I(mpg*2)~wt,data=mtcars)
+> print(xtable(summary(fit4)),comment=F)
+\end{Sinput}
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 74.5703 & 3.7553 & 19.86 & 0.0000 \\ 
+  wt & -10.6889 & 1.1182 & -9.56 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\end{table}\end{Schunk}
+
+\newpage
+
+\subsubsection*{Anova}
+\begin{Schunk}
+\begin{Sinput}
+> print(xtable(anova(fit)),comment=F)
+\end{Sinput}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrr}
+  \hline
+ & Df & Sum Sq & Mean Sq & F value & Pr($>$F) \\ 
+  \hline
+wt & 1 & 847.73 & 847.73 & 91.38 & 0.0000 \\ 
+  Residuals & 30 & 278.32 & 9.28 &  &  \\ 
+   \hline
+\end{tabular}
+\end{table}\end{Schunk}
+
+
+
+\subsubsection*{Confidence Intervals about Estimators}
+
+
+\begin{Schunk}
+\begin{Sinput}
+> sumCoef <- summary(fit)$coefficients
+> ## for the intercept
+> sumCoef[1,1] + c(-1, 1) * qt(.975, df = fit$df) * sumCoef[1, 2]
+\end{Sinput}
+\begin{Soutput}
+[1] 33.45050 41.11975
+\end{Soutput}
+\begin{Sinput}
+> ## for the slope
+> sumCoef[2,1] + c(-1, 1) * qt(.975, df = fit$df) * sumCoef[2, 2]
+\end{Sinput}
+\begin{Soutput}
+[1] -6.486308 -4.202635
+\end{Soutput}
+\begin{Sinput}
+> 
+> 
+\end{Sinput}
+\end{Schunk}
+
+
+
+\end{document}

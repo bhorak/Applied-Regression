@@ -1,0 +1,71 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\section*{Question 2}
+
+A: Plot Purity vs Hydrocarbon. Discuss what you see in relation to 
+the SLR assumptions.
+<<fig=TRUE>>=
+## loading usefull packages
+library(knitr);library(xtable);library(ggplot2)
+## read in data
+data<-read.table("A1_data.txt",sep=" ",header=T)
+## rename the variables
+names(data)<-c("purity","hydrocarbon")
+## Plot graph
+plot_1<-qplot(hydrocarbon,purity,data=data,main="Purity vs Hydrocarbon")
+print(plot_1)
+@
+
+\newpage
+B: Fit a linear model and plot the fitted line to (A). Explain the model
+<<results=tex>>=
+fit1<-lm(purity~hydrocarbon,data=data)
+print(xtable(summary(fit1)))
+print(xtable(anova(fit1)))
+@
+The model parameter.....
+
+<<fig=TRUE>>=
+plot_1<-plot_1+geom_smooth(method = "lm")
+print(plot_1)
+@
+
+\newpage
+C: Fit a 95 percent prediction and confidence interval for the purity level when
+the hydrocarbon percentage is equal to to 1.0. Explain the PI and CI.
+<<>>=
+## need to check
+confidence_interval<-predict(fit1,newdata=data.frame(hydrocarbon=1),
+                             interval=("confidence"),level=0.95)
+prediction_interval<-predict(fit1,newdata=data.frame(hydrocarbon=1),
+                             interval=("prediction"),level=0.95)
+print(confidence_interval)
+print(prediction_interval)
+@
+A confidence interval expresses uncertainty about the expected value of y-values at a given x.
+A prediction interval expresses uncertainty surrounding the predicted y-value of 
+a single sampled point with that value of x.
+
+D: Do the hypothesis test for B1=0 at 0.05 level of significance. Explain.
+
+<<results=tex>>=
+print(xtable(summary(fit1)))
+@
+
+As you can see the table summary of coefficients automatically calculates
+the hypothesis test for me. 
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
