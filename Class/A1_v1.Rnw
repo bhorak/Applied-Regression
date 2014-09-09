@@ -5,8 +5,16 @@
 
 \section*{Question 2}
 
-A: Plot Purity vs Hydrocarbon. Discuss what you see in relation to 
+\textbf{A:} Plot Purity vs Hydrocarbon. Discuss what you see in relation to 
 the SLR assumptions.
+
+\textbf{Assumtion 1:} There does apear to be a linear relationship between purity
+and hydrocarbons.The expectation of residuals does apear to be approximetly zero.
+\textbf{Assumption 2:} 
+\textbf{Assumption 3:}
+\textbf{Assumption 4:}
+
+
 <<fig=TRUE>>=
 ## loading usefull packages
 library(knitr);library(xtable);library(ggplot2)
@@ -19,8 +27,11 @@ plot_1<-qplot(hydrocarbon,purity,data=data,main="Purity vs Hydrocarbon")
 print(plot_1)
 @
 
+
+The data seems to not have constant volatility. As
+
 \newpage
-B: Fit a linear model and plot the fitted line to (A). Explain the model
+\textbf{B:} Fit a linear model and plot the fitted line to (A). Explain the model
 <<results=tex>>=
 fit1<-lm(purity~hydrocarbon,data=data)
 print(xtable(summary(fit1)))
@@ -33,8 +44,36 @@ plot_1<-plot_1+geom_smooth(method = "lm")
 print(plot_1)
 @
 
+To check for the normality of residuals.
+
+<<fig=TRUE>>=
+## check if this compiles
+x<-resid(fit1)
+h<-hist(x, breaks=5, col="red", xlab="Miles Per Gallon", 
+      main="Histogram with Normal Curve") 
+xfit<-seq(min(x),max(x),length=40) 
+yfit<-dnorm(xfit,mean=mean(x),sd=sd(x)) 
+yfit <- yfit*diff(h$mids[1:2])*length(x) 
+lines(xfit, yfit, col="blue", lwd=2)
+@
+
+
+I would venture to say that the data does indeed look relatively normal.
+
+Some basic diagnostics on the residual variance.
+
+<<fig=TRUE>>=
+plot3<- qplot(predict(fit1),resid(fit1))+ggtitle("Residuals Plot")
+print(plot3)
+@
+
+
+From the residuals vs predicted plot we can see that the variance of residuals
+is not constant. For lower predicted values the residual is considerably more variable
+than for higher ones. This violates the homoscedasticity assumption.
+
 \newpage
-C: Fit a 95 percent prediction and confidence interval for the purity level when
+\textbf{C:} Fit a 95 percent prediction and confidence interval for the purity level when
 the hydrocarbon percentage is equal to to 1.0. Explain the PI and CI.
 <<>>=
 ## need to check
@@ -49,23 +88,15 @@ A confidence interval expresses uncertainty about the expected value of y-values
 A prediction interval expresses uncertainty surrounding the predicted y-value of 
 a single sampled point with that value of x.
 
-D: Do the hypothesis test for B1=0 at 0.05 level of significance. Explain.
+\textbf{D:} Do the hypothesis test for B1=0 at 0.05 level of significance. Explain.
 
 <<results=tex>>=
 print(xtable(summary(fit1)))
 @
 
 As you can see the table summary of coefficients automatically calculates
-the hypothesis test for me. 
-
-
-
-
-
-
-
-
-
+the hypothesis test for me. At a significance level of 5 percent the slope
+coefficient is statistically significant. 
 
 
 \end{document}
