@@ -10,9 +10,14 @@ the SLR assumptions.
 
 \textbf{Assumtion 1:} There does apear to be a linear relationship between purity
 and hydrocarbons.The expectation of residuals does apear to be approximetly zero.
-\textbf{Assumption 2:} 
-\textbf{Assumption 3:}
-\textbf{Assumption 4:}
+\textbf{Assumption 2:} The error or residual values do not have constant variances.
+As seen from the plot the hypothetical error variables are considerbly more 
+variable as for higher hydrocarbon values. The homoscedasticity assumption
+might be violated in this case. 
+\textbf{Assumption 3:} The error/residuals do seem to be independent from one 
+another.
+\textbf{Assumption 4:} Even though their variance isn't constant the, error values
+do seem to be normaly distributed.
 
 
 <<fig=TRUE>>=
@@ -37,7 +42,8 @@ fit1<-lm(purity~hydrocarbon,data=data)
 print(xtable(summary(fit1)))
 print(xtable(anova(fit1)))
 @
-The model parameter.....
+The model parameter, hydrocarbon, which in this case is our slope coefficeint or 
+the estimator B1. The value \Sxpr{nrow(data)} 
 
 <<fig=TRUE>>=
 plot_1<-plot_1+geom_smooth(method = "lm")
@@ -96,7 +102,7 @@ print(xtable(summary(fit1)))
 
 As you can see the table summary of coefficients automatically calculates
 the hypothesis test for me. At a significance level of 5 percent the slope
-coefficient is statistically significant. 
+coefficient is statistically significant.  
 
 
 \end{document}
