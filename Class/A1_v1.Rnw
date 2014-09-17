@@ -9,19 +9,19 @@
 the SLR assumptions.
 
 \textbf{Assumtion 1:} There does apear to be a linear relationship between purity
-and hydrocarbons.The expectation of residuals does apear to be approximetly zero.
+and hydrocarbons. The expectation of residuals does apear to be approximetly zero.
 \textbf{Assumption 2:} The error or residual values do not have constant variances.
 As seen from the plot the hypothetical error variables are considerbly more 
-variable as for higher hydrocarbon values. The homoscedasticity assumption
+variable for higher hydrocarbon values than for lower ones. The homoscedasticity assumption
 might be violated in this case. 
 \textbf{Assumption 3:} The error/residuals do seem to be independent from one 
 another.
-\textbf{Assumption 4:} Even though their variance isn't constant the, error values
+\textbf{Assumption 4:} Even though their variance isn't constant, the error values
 do seem to be normaly distributed.
 
 
 <<fig=TRUE>>=
-## loading usefull packages
+## loading useful packages
 library(knitr);library(xtable);library(ggplot2)
 ## read in data
 data<-read.table("A1_data.txt",sep=" ",header=T)
@@ -33,56 +33,29 @@ print(plot_1)
 @
 
 
-The data seems to not have constant volatility. As
-
 \newpage
 \textbf{B:} Fit a linear model and plot the fitted line to (A). Explain the model
 <<results=tex>>=
 fit1<-lm(purity~hydrocarbon,data=data)
 print(xtable(summary(fit1)))
-print(xtable(anova(fit1)))
 @
-The model parameter, hydrocarbon, which in this case is our slope coefficeint or 
-the estimator B1. The value \Sxpr{nrow(data)} 
+
+The value of slope or the B1 estimator, \Sexpr{summary(fit1)$coefficients[2,1]} is 
+interpreted as the expected change in purity given a 1 unit change of hydrocarbons. 
+Similarly,the intercept value of \Sexpr{summary(fit1)$coefficients[1,1]} or 
+the B0 estimator represents the expected value of purity at 0 hydrocarbons,
+though this might not make any contextual sense in some cases.
 
 <<fig=TRUE>>=
 plot_1<-plot_1+geom_smooth(method = "lm")
 print(plot_1)
 @
 
-To check for the normality of residuals.
-
-<<fig=TRUE>>=
-## check if this compiles
-x<-resid(fit1)
-h<-hist(x, breaks=5, col="red", xlab="Miles Per Gallon", 
-      main="Histogram with Normal Curve") 
-xfit<-seq(min(x),max(x),length=40) 
-yfit<-dnorm(xfit,mean=mean(x),sd=sd(x)) 
-yfit <- yfit*diff(h$mids[1:2])*length(x) 
-lines(xfit, yfit, col="blue", lwd=2)
-@
-
-
-I would venture to say that the data does indeed look relatively normal.
-
-Some basic diagnostics on the residual variance.
-
-<<fig=TRUE>>=
-plot3<- qplot(predict(fit1),resid(fit1))+ggtitle("Residuals Plot")
-print(plot3)
-@
-
-
-From the residuals vs predicted plot we can see that the variance of residuals
-is not constant. For lower predicted values the residual is considerably more variable
-than for higher ones. This violates the homoscedasticity assumption.
 
 \newpage
 \textbf{C:} Fit a 95 percent prediction and confidence interval for the purity level when
 the hydrocarbon percentage is equal to to 1.0. Explain the PI and CI.
 <<>>=
-## need to check
 confidence_interval<-predict(fit1,newdata=data.frame(hydrocarbon=1),
                              interval=("confidence"),level=0.95)
 prediction_interval<-predict(fit1,newdata=data.frame(hydrocarbon=1),
@@ -90,19 +63,35 @@ prediction_interval<-predict(fit1,newdata=data.frame(hydrocarbon=1),
 print(confidence_interval)
 print(prediction_interval)
 @
+
 A confidence interval expresses uncertainty about the expected value of y-values at a given x.
 A prediction interval expresses uncertainty surrounding the predicted y-value of 
-a single sampled point with that value of x.
+a single sampled point with that value of x. In regards, to our experiment we 
+say that the confidence interval is the interval in which we say that 95 percent of the
+sample means we observe will fall in this interval, given that the hydrocarbon value is equal to 1.0. 
+The prediction interval is the interval in which we are 95 percent certain the values of the next 
+observation will fall within this inteval, again given that the hydrocarbon value is zero. 
+As such, the prediction interval is wider than the confidence interval.
 
 \textbf{D:} Do the hypothesis test for B1=0 at 0.05 level of significance. Explain.
+
 
 <<results=tex>>=
 print(xtable(summary(fit1)))
 @
+As we can see the table summary of coefficients automatically calculates
+the hypothesis test for us. At a significance level of 5 percent the slope
+coefficient is statistically significant. 
 
-As you can see the table summary of coefficients automatically calculates
-the hypothesis test for me. At a significance level of 5 percent the slope
-coefficient is statistically significant.  
+In more detail, we do a double sided t-test with a null hypothesis that the slope
+estimator is 0 i.e. there is no relation between purity and hydrocarbons. The alternative
+hypothesis is that this value is different than 0. In order to evaluate the this we 
+use a students t-test with 2 degrees of freedom. The resulting value of this t-test ends
+up being \Sexpr{summary(fit1)$coefficients[2,3]} and the correponding p-value of 
+\Sexpr{summary(fit1)$coefficients[2,4]}. As we can see this p-value is close to zero and 
+is less than than our significance figure of 0.05, so we can say that the slope estimator 
+is indeed statistically significant. 
+
 
 
 \end{document}

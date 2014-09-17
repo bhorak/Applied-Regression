@@ -55,7 +55,7 @@ Use xtable package
 > print(xtable(summary(fit))) ## Returns a nicer looking table
 \end{Sinput}
 % latex table generated in R 3.1.1 by xtable 1.7-3 package
-% Sun Sep 07 21:13:38 2014
+% Sat Sep 13 19:49:51 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrrr}
@@ -182,8 +182,15 @@ wt & 1 & 847.73 & 847.73 & 91.38 & 0.0000 \\
 \begin{Soutput}
 [1] -6.486308 -4.202635
 \end{Soutput}
+\end{Schunk}
+
+
+\subsubsection*{Confidence/Prediction Intervals about Predicteds}
+
+\begin{Schunk}
 \begin{Sinput}
-> 
+> p1<-predict(fit,mtcars,interval=("confidence"),level=0.95)
+> p2<-predict(fit,mtcars,interval=("prediction"),level=0.95)
 > 
 \end{Sinput}
 \end{Schunk}
