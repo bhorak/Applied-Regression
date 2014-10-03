@@ -12,16 +12,19 @@ df<-read.csv("Belle_data.csv")
 rownames(df) <- df[, 1] ## set rownames
 df <- df[, -1]  
 pairs(df)
+df2<-df
 colnames(df)<-c("C02","SpaceTime","Temp","PercentSolvation","OilYield","CoalTotal","SolventTotal", "HydrogenConsumption")
 
 @
 
-Here we see a very messy pairs plot. As this data set has a great meany variables
+Here we see a very messy pairs plot. As this data set has many variables
 and we are interested in the relationship between y and the x variables and not necessarily
 between x variables themselves.
 
+\newpage
+
 <<fig=TRUE>>=
-library(ggplot2);library(gridExtra);
+library(ggplot2);library(gridExtra);library(xtable);
 plot1<-qplot(x1,y,data=df2)+ggtitle("y vs x1")
 plot2<-qplot(x2,y,data=df2)+ggtitle("y vs x2")
 plot3<-qplot(x3,y,data=df2)+ggtitle("y vs x3")
@@ -30,13 +33,15 @@ plot5<-qplot(x5,y,data=df2)+ggtitle("y vs x5")
 plot6<-qplot(x6,y,data=df2)+ggtitle("y vs x6")
 plot7<-qplot(x7,y,data=df2)+ggtitle("y vs x7")
 
-grid.arrange(plot1,plot2,plot3,plot4,plot5,plot6,plot7,ncol=4)
+grid.arrange(plot1,plot2,plot3,plot4,plot5,plot6,plot7,ncol=3)
 @
 
 From these plot we can clearly see that x1,x2,x3,x4 have a seemingly negative
 relationship with y. While x5,x6 and x7 have a positive correlation. 
 
-\textbf{B:} Fit Multiple regrresion model relation CO2 product to total solvent and hydrogen
+\newpage
+
+\textbf{B:} Fit Multiple regrresion model relating CO2 product to total solvent and hydrogen
 consumption.
 <<results=tex>>=
 fit<-lm(C02~SolventTotal+HydrogenConsumption,data=df)
@@ -46,27 +51,37 @@ print(xtable(summary(fit)))
 \textbf{C:} Test the significance of regression and calculate R2.
 <<results=tex>>=
 f <- summary(fit)$fstatistic
-p <- pf(f[1],f[2],f[3],lower.tail=F)
+prob <- round(pf(f[1],f[2],f[3],lower.tail=F),digits=10)
 print(xtable(anova(fit)))
 @
 
-The F test of significanse yields an F Statisitc of probablity of \Sxpr{summary(fit)$fstatistic[1]}
-with a corresponding p value of \Sxpr{p}. The R-squared value comes out to \Sxpr{summary(fit)$r.squared}.
+The F test of significanse yields an F Statisitc of
+\Sexpr{round(summary(fit)$fstatistic[1],5)}.
+with a corresponding p value of \Sexpr{round(prob,8)}. 
+The R-squared value comes out to \Sexpr{round(summary(fit)$r.squared,5)}. Clearly
+there is at least one variable in our regreesion that has some explanatory power.  
+  
 
-\textbf{D:} Now do the test in (c) using t tests and determine the contribution of the two regres- sors.
+
+\textbf{D:} Now do the test in (c) using t tests and determine the contribution of 
+the two regressors.
 <<results=tex>>=
 print(xtable(summary(fit)))
 @
 
-Both are significant.
+Both are significant. Funnily enough the intercept is not significantly different
+from zero.
 
-\textbf{E:} Construct the 95% CI on the regression parameters in (b).
+\newpage
+
+\textbf{E:} Construct the 95 percent CI on the regression parameters in (b).
 
 <<results=tex>>=
 print(xtable(confint(fit)))
 @
 
-\textbf{F:}
+\textbf{F:} Reconstruct the overall ANOVA table using the summary results.
+
 <<results=tex>>=
 source1<-c("SolventTotal","HydrogenConsumpetion","Residuals")
 degf<-c(1,1,length(df$C02)-3)
@@ -80,9 +95,9 @@ ss <- c(unlist(lapply(split(comp^2, asgn), sum)), ssr)
 
 ss1<-ss[2:4]
 ms<-ss1/degf
-f <- ms/(ssr/dfr)
+f <- round(ms/(ssr/dfr),3)
 f[3]<-0
-P <- pf(f, degf, dfr, lower.tail = FALSE)
+P <- round(pf(f, degf, dfr, lower.tail = FALSE),3)
 P[3]<-0
 data_tab<-cbind(source1,degf,ss1,ms,f,P)
 row.names(data_tab)<-NULL
@@ -91,11 +106,13 @@ data_tab <- data_tab[, -1]
 print(xtable(data_tab))
 @
 
-For comparison here is the anova table that are produces
+For comparison, on the next page is the Anova table that R produces. 
+
+\newpage
 
 <<results=tex>>=
 print(xtable(anova(fit)))
 @
 
-As you can see both the tables are identical.
+As we can see both the tables are identical.
 \end{document}
