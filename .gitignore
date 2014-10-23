@@ -1,0 +1,4 @@
+*.gz
+*.Rhistory
+*.tex
+*.log

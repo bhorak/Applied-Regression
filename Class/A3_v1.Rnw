@@ -1,13 +1,13 @@
-
 \documentclass{article}
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
 
-\section*{Question 3}
-\textb{A:} Fit a linear regression model relating wine quality to the first 5 regressors
-except Region.
+\section*{Question 2}
+
+\textbf{A:} Fit a linear regression model relating wine quality to the first
+5 regressors except Region.
 
 <<fig=TRUE>>=
 library(xtable)
@@ -18,15 +18,18 @@ pairs(data)
 As we can see Region is quite clearly a categorical variable while the others 
 are continuous. Quality seems to be linear with the other continous variables.
 
+\newpage
+
 <<results=tex>>=
 fit<-lm(Quality~Oakiness+Flavor+Body+Aroma+Clarity,data=data)
 print(xtable(summary(fit)))
 @
 
-Here is the model for our wine quality. The equations becomes
-Quality=4 -.684*Oakiness+1.1683*Flavour+0.2732*Body+0.4826*Aroma+2.3395*Clarity
+Here is the model for our wine quality. The equation becomes
+Quality=4-.684*Oakiness+1.1683*Flavour+0.2732*Body+0.4826*Aroma+2.3395*Clarity
+  
 
-\textb{B:} Construct an Anova table and test for significance of regression
+\textbf{B:} Construct an Anova table and test for significance of regression
 
 <<results=tex>>=
 fit_0<-lm(Quality~1,data=data)
@@ -34,7 +37,7 @@ print(xtable(anova(fit_0,fit)))
 @
 
 \newpage
-\textb{C:}
+\textbf{C:}
 
 <<results=tex>>=
 print(xtable(summary(fit)))
@@ -44,9 +47,9 @@ At a significance level of 0.05. We can say that Body and Clarity are not
 statistically significant. While Aroma, Flavour and Oakiness are statistically 
 significant, we have enough evidence to reject the null hypothesis in their cases.
 
-\textb{D:}
+\textbf{D:}
 
-<<>>=
+<<results=Tex>>=
 fit_2<-lm(Quality~Aroma+Flavor+Oakiness,data=data)
 full_model<-c(summary(fit)$r.squared,summary(fit)$adj.r.squared)
 reduced_model<-c(summary(fit_2)$r.squared,summary(fit_2)$adj.r.squared)
@@ -61,7 +64,7 @@ significantly the R-squared values did not decease by much, illustrating that
 the variables we removed were not contributing much to the explanatory power 
 of our model. 
 
-\textb{E:} Partial F-Test
+\textbf{E:} Partial F-Test
 
 
 
