@@ -8,14 +8,18 @@
 \textb{A} Fit a linear regression model relating wine quality to the first 5 regressors
 except Region.
 
-<<>>=
-library(XLConnect)
-wb<-loadWorkbook("wine_data.xls")
-
-
-
+<<fig=TRUE>>=
+data<-read.csv("wine_data.csv")
+pairs(data)
 @
 
+As we can see Region is quite clearly a categorical variable while the others 
+are continuous. Quality seems to be linear with the other continous variables.
+
+<<results=tex>>=
+fit<-lm(Quality~Oakiness+Flavor+Body+Aroma+Clarity,data=data)
+print(xtable(summary(fit)))
+@
 
 
 \end{document}
