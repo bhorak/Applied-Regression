@@ -1,0 +1,21 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+\section*{Question 3}
+\textb{A} Fit a linear regression model relating wine quality to the first 5 regressors
+except Region.
+
+<<>>=
+library(XLConnect)
+wb<-loadWorkbook("wine_data.xls")
+
+
+
+@
+
+
+
+\end{document}
