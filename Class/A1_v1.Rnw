@@ -12,7 +12,7 @@ the SLR assumptions.
 and hydrocarbons. The expectation of residuals does apear to be approximetly zero.
 \textbf{Assumption 2:} The error or residual values do not have constant variances.
 As seen from the plot the hypothetical error variables are considerbly more 
-variable for higher hydrocarbon values than for lower ones. The homoscedasticity assumption
+variable for lower hydrocarbon values than for higher ones. The homoscedasticity assumption
 might be violated in this case. 
 \textbf{Assumption 3:} The error/residuals do seem to be independent from one 
 another.
@@ -49,10 +49,45 @@ though this might not make any contextual sense in some cases.
 <<fig=TRUE>>=
 plot_1<-plot_1+geom_smooth(method = "lm")
 print(plot_1)
+
 @
 
-
 \newpage
+\textbf{Some Diagnostics}
+
+In terms of the overall statistical significance of the model. We look at 
+the F-test for the model using the Anova table.
+
+<<results=tex>>=
+print(xtable(anova(fit1)))
+@
+ 
+As we can see the p-values for the corresponding F-test is quite low leading us
+to believe that the model does have some explanatory power. The R-squared values
+turns out to be \Sexpr{summary(fit1)$r.squared} which is quite low. This result 
+shows that this model is not particularly good at explaining the variance of the
+purity variable.
+ 
+As mentioned earlier the constant variance assumption might be violated in our data set.
+In order to check for this the residual vs predicted plot is a usefull tool.
+
+<<fig=TRUE>>=
+ qplot(predict(fit1),resid(fit1))+ggtitle("Residuals Plot") +
+   geom_hline(yintercept = 0,colour="red")
+@
+
+As we can clearly see from the residuals plot the variance is does have a pattern.
+The residuals are definetly more variable for low predicted values, which supports
+our previous analysis. 
+
+To summarize, due to the low R-squared values and the apparent violation of the 
+constant variance assumption this model is unlikely to have any significant explanatory
+or predicitive value.
+
+
+
+
+
 \textbf{C:} Fit a 95 percent prediction and confidence interval for the purity level when
 the hydrocarbon percentage is equal to to 1.0. Explain the PI and CI.
 <<>>=
