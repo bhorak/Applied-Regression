@@ -1,0 +1,322 @@
+\documentclass{article}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{capt-of}
+
+\begin{document}
+
+\SweaveOpts{concordance=TRUE}
+
+\section*{Question 1: Exercise 5.5}
+
+\textbf{A:}
+
+<<fig=TRUE>>=
+library(ggplot2)
+df<-read.csv("ex.5.5.csv")
+plot1<-qplot(weeks,defects,data=df)+ggtitle("defects vs weeks")
+print(plot1)
+@
+
+Looking at the basic scatterplot data, there is an apparent curve to the relationship.
+The model might not be linear.
+
+<<results=tex>>=
+library(xtable)
+fit1<-lm(defects~weeks,data=df)
+print(xtable(summary(fit1)))
+
+@
+
+
+The model becomes defects=-31.6982+7.2767weeks. Both the intercept and the 
+"weeks" predictor are statistically significant. The overall regression is also
+statistically significant with a p-value very close to zero. 
+
+\textbf{Test for Model Adequacy}
+
+<<fig=TRUE>>=
+attach(df)
+res.lm1<-residuals(fit1)
+par(mfrow = c(2,2))
+plot(weeks,res.lm1,pch = 21, bg='red',xlab='weeks',ylab ='Residual',
+     main="Residual vs Weeks")
+haty.lm1 = predict(fit1)
+plot(haty.lm1,res.lm1,pch = 21, bg='red',xlab='Fitted Values',ylab ='Residual',
+     main="Residual vs Fittted")
+qqnorm(res.lm1,pch = 21, bg='red',ylab ='Residual Quantiles')
+qqline(res.lm1)
+detach(df)
+@
+
+From the Normal Q-Q plot we can see tha the normality assumption is satisfied. 
+However, from the Residual vs Fitted plot we can clearly see the variance 
+is not constant. To remedy this I suggest using a natural log transformation on
+the response variable, defects.
+
+<<results=tex>>=
+## perform transformation
+df2<-df
+df2$defects<-log(df2$defects)
+
+## fit model
+fit2<-lm(defects~weeks,data=df2)
+print(xtable(summary(fit2)))
+
+@
+
+The new model becomes ln(defects)=1.71622+0.17351*weeks.
+ 
+The model is significant in both the intercept and the weeks predictor. In addition,
+the model is significant overall with an r-squared if 0.9137 and a p-value of close to
+zero.
+
+
+\textbf{Test for Model Adequacy}
+
+<<fig=TRUE>>=
+attach(df2)
+res.lm1<-residuals(fit2)
+par(mfrow = c(2,2))
+plot(weeks,res.lm1,pch = 21, bg='red',xlab='weeks',ylab ='Residual',
+     main="Residual vs Weeks")
+haty.lm1 = predict(fit2)
+plot(haty.lm1,res.lm1,pch = 21, bg='red',xlab='Fitted Values',ylab ='Residual',
+     main="Residual vs Fittted")
+qqnorm(res.lm1,pch = 21, bg='red',ylab ='Residual Quantiles')
+qqline(res.lm1)
+detach(df2)
+@
+
+From the new models, residual plot we can see that the non-constant variance assumption
+looks to be more appropriate than before.
+
+\section*{Question 2: Exercise 6.3}
+
+<<results=hide>>=
+df3<-read.csv("belle.csv")
+fit3<-lm(y~x1+x2+x3+x4+x5+x6+x7,data=df3)
+inflm<-influence.measures(fit3)
+table<-summary(inflm)
+@
+
+Next page has the influential measures table. 
+\newpage
+\begin{landscape}
+
+
+<<results=tex,message=FALSE>>=
+print(xtable(table))
+@
+
+This table provides a summary of all the observations R considers most likely to 
+be influential. As we can see observation 14 is most obviosuly an influential outlier. 
+Looking at the cov.r and Cook's D values we can see that the point is extremely influential.
+It particularly strongly affects x5 and x6, we see this by looking at the dfb.x5 and dfb.x6 values.
+
+\end{landscape} 
+
+\newpage
+
+\section*{Question 4}
+
+<<>>=
+library(MASS);
+df4<-read.csv("mort.csv")
+names(df4)<-c("city","mort","precip","educ","nonwhite","nox","so2")
+@
+
+\textbf{A: Backward Selection}
+
+<<>>=
+fit<-lm(mort~precip+educ+nonwhite+nox+so2,data=df4)
+drop1(fit,test="F")
+@
+
+We can see that the nox value is deemed unnecessary, thus we delete it.
+
+<<>>=
+fit <- update(fit,.~.-nox)
+@
+
+Now to see if we need to drop another variable.
+
+<<>>=
+drop1(fit, test='F')
+@
+
+All the other variables are clearly significant, as such we can end the algorythm 
+here. The final model is mort~precip+educ+nonwhite+so2
+
+\newpage
+\textbf{A: Forward Selection}
+
+<<>>=
+fit_f <- lm(mort~1,data=df4)
+add1(fit_f,mort~precip+educ+nonwhite+nox+so2,test='F')
+@
+
+We can that the variable "nonwhite" is most significant, thus we add it to the 
+model.
+
+<<>>=
+fit_f <- update(fit_f,.~.+nonwhite)
+@
+
+See if we can add any more variables
+
+<<>>=
+add1(fit_f,mort~precip+educ+nonwhite+nox+so2,test='F')
+@
+
+Educ is the next most significant variable, we add it as well.
+
+<<>>=
+fit_f <- update(fit_f,.~.+educ)
+@
+
+See if more variables are needed
+
+<<>>=
+add1(fit_f,mort~precip+educ+nonwhite+nox+so2,test='F')
+@
+
+We can see that "so2" has a p-value less than 0.1, thus we add it to our model.
+
+<<>>=
+fit_f <- update(fit_f,.~.+so2)
+@
+
+see if more variables are needed. 
+
+<<>>=
+add1(fit_f,mort~precip+educ+nonwhite+nox+so2,test='F')
+@
+
+"precip" is also significant and thus, added.
+<<>>=
+fit_f <- update(fit_f,.~.+precip)
+@
+
+Now, to see wether it worth adding nox to the model.
+
+<<>>=
+add1(fit_f,mort~precip+educ+nonwhite+nox+so2,test='F')
+@
+
+As we can see from the table the p value is larger than 0.1, thus we do not 
+add it to our model.
+
+\textbf{A: Stepwise}
+
+<<>>=
+fit_null<-lm(mort~precip+educ+nonwhite+nox+so2,data=df4)
+step3<-stepAIC(fit_null, direction="both")
+
+@
+
+We can see that through stepwise selection, we still only exclude the "nox" variable.
+
+<<>>=
+step3$anova
+@
+
+As we can see that the nox variable is not significant, as such we end our
+algorythm here. The final model is mort~precip+educ+nonwhite+so2. All three stepwise
+selection methods resulted in the same model.
+
+
+\textbf{B: All Subset Selection}
+
+<<>>=
+library(leaps);library(car);
+leaps<-regsubsets(mort~precip+educ+nonwhite+nox+so2,data=df4,nbest=1)
+summary(leaps)
+@
+
+Now let us see which how good the variables are compared to one another. 
+
+
+
+<<fig=FALSE>>=
+par(mfrow = c(2,2))
+
+plot(leaps,scale="r2",main="R2 vs Vars")
+plot(leaps,scale="bic",main="BIC vs Vars")
+plot(leaps,scale="adjr2",main="Adj.R2 vs Vars")
+plot(leaps,scale="Cp",main="Cp vs Vars")
+@
+
+
+<<fig=FALSE>>=
+layout(matrix(1:4, ncol = 2))
+
+res.legend <-subsets(leaps, statistic="rsq", 
+                     legend = FALSE, min.size = 1, main = "R^2")
+## Adjusted R2
+res.legend <-subsets(leaps, statistic="adjr2", 
+                     legend = FALSE, min.size = 1, main = "Adjusted R^2")
+## Mallow Cp
+res.legend <-subsets(leaps, statistic="cp", 
+                     legend = FALSE, min.size = 1, main = "Mallow Cp")
+abline(a = 1, b = 1, lty = 2)
+@
+
+
+Looking at the four variables we can see the ideal models for all subsections are  
+\begin{verbatim}
+if we use r2; it is: mort~precip+educ+nonwhite+nox+so2  
+if we use adj.R2 it is: mort~precip+educ+nonwhite+so2  
+if we use mallow's Cp it is:mort~precip+educ+nonwhite+so2 
+\end{verbatim}
+ 
+
+Unsuprisingly R2 is not a reliable criterion for picking models as it does not 
+penalize the addition of more variables. The ideal
+adj.R2 model and mallows Cp models are identical. 
+\newpage
+
+\textbf{C: LASSO}
+
+<<fig=true>>=
+library(glmnet);
+x<-X <- as.matrix(df4[,3:7])
+y<-df4$mort
+lambdas<-exp(seq(-5,5,by=0.1))
+eg.lm1 <- glmnet(x,y,lambda=lambdas)
+par(mfrow<-c(1,2))
+plot(eg.lm1,label=TRUE)
+plot(eg.lm1,xvar="lambda",label=TRUE)
+@
+
+
+<<fig=true>>=
+eg.cv <- cv.glmnet(x,y,lambda=lambdas, nfolds=4)
+plot(eg.cv)
+@
+
+
+<<>>=
+ss<-c(eg.cv$lambda.min,eg.cv$lambda.1se)
+## find coefficients
+coef(eg.cv,s=c(eg.cv$lambda.min,eg.cv$lambda.1se))
+@
+
+From the above result we see that nox is not a useful variable. Thus our final
+model includes all variables except nox.
+\newpage
+This is the same result we had in each or variable selection methods, excep all 
+subset r2, which is not a good selection method to begin with. As such our ideal 
+model is:
+
+<<results=tex>>=
+final_model<-lm(mort~precip+educ+nonwhite+so2,data=df4)
+print(xtable(summary(final_model)))
+@
+
+
+
+
+\end{document}
