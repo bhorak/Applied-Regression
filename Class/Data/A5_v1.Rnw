@@ -1,0 +1,364 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\section*{Question 1:d}
+
+<<>>=
+data<-read.csv("cement.csv")
+cor<-cor(data[,2:5])
+round(cor,3)
+@
+
+We see some very high correlation like 0.973 and .824. Nex we look at eigenvalues.
+
+
+<<>>=
+eig<-eigen(cor)
+round(eig$val,4)
+@
+
+We also see some very low eigenvalues such as 0.0016.This and the high correlation
+value indicates that we have multicolliniearity. 
+
+<<fig=TRUE>>=
+library(MASS)
+x<-scale(data[,2:5])
+y<-data$y-mean(data$y)
+lambdas <- seq(0,0.6,by = 0.010)
+eg.lmr<- lm.ridge(y~-1+x,lambda=lambdas)
+plot(lambdas,eg.lmr$GCV,pch = 21, bg="red",xlab = "lambda",ylab="GCV")
+lambda.min = lambdas[as.numeric(which(eg.lmr$GCV
+==min(eg.lmr$GCV)))]
+abline(v=lambda.min,lwd=2,col="blue")
+eg.lmr0 = lm.ridge(y~-1+x,lambda=lambda.min)
+@
+
+From the plot we see that the ideal lambda value for our regression is 0.32.
+
+Prediction with new observation
+
+<<>>=
+x0 <- cbind(10,50,20,40)
+x0.star = scale(x0,center=attr(x,"scaled:center"), scale=attr(x,"scaled:scale"))
+y0<-sum(eg.lmr0$coef*x0.star)+mean(data$y)
+print(y0)
+@
+
+Thus our new prediction is 94.2111 from the ridge regression model and a lambda
+0.32. Now to compare with our regular model.
+
+<<>>=
+fit<-lm(y~x1+x2+x3+x4,data=data)
+predict(fit,newdata=data.frame(x1=10,x2=50,x3=20,x4=40))
+@
+
+
+With the old regression model our prediction become 99.70052. Considerably higher.
+
+\newpage
+\section*{Question 2}
+
+A brief critique of Wine Quality : Correlations with Colour Density and
+Anthocyanin Equilibria in a Group of Young Red Wines by T. Chris Somers and
+Miceah T. Evans. 
+
+The first and major issue that this paper has is that there was is no mention or use
+of any technique more advanced than simple linear regression. No mention was made of
+the possible multicolinearity between the variables and no influence or outlier tests were 
+performed.
+
+
+With having essentially zero backround knowledge or understanding of the underlying 
+science of wine tasting and their chemical properties I will restrict this critique to 
+strictly statistical basis. This paper will first look at the influence and outlier measures
+of each of the regressions performed in this paper, and if needed remove some observations and see
+if the results vary from the ones presented in the paper.  Then I will briefly look 
+at an MLR model of the data and see if wine quality can be reliably 
+predicted using the variables given. I will check 
+for multicolinearity and perfrom a ridge regression if needed. 
+
+\section*{Influence Analysis}
+
+As said before, this will only look at the regression pairing presented in the paper.
+
+\textbf{Figure 1: Relation between quality and wine colour density}
+
+<<>>=
+data<-read.csv("wine_1.csv")
+@
+
+Wine Colour is designated x4 in our data and wine quality as y. We have two different
+wine types present in this data set Shiraz and Cabernet Sauvignon. One of the major
+questions of this paper is wether the statistical results are different for each of 
+those types. Instead of running two regression to see if they are different, we will 
+instead use an interaction variable between wine type or variable "x1" and colour density
+"x4." If this interaction is significant we will know the two wine types respond differently
+to the wine colour density. The result in the paper was that both of the lines were identical.
+
+<<results=tex>>=
+library(xtable)
+dens<-data[,c("y","x_1","x_4")]
+## define interaction 
+dens$int<-dens$x_1*dens$x_4
+##fit the model
+fit1<-lm(y~factor(x_1)+x_4+int,data=dens)
+## print the results
+print(xtable(summary(fit1)))
+@
+
+\newpage
+From this we can see that the regression is indeed significant with a p-value less
+than 0.005.We can also see that the both the interaction variable int and the dummy variable x1
+are not statistically significant. Thus, we can confirm the paper's results. 
+
+<<>>=
+inflm<-influence.measures(fit1)
+table<-summary(inflm)
+@
+
+We can see that the that no observation were highly influential as our cook's D 
+and hat values did not indicate a high degree of influence.
+
+\textbf{Figure 3: Wine Colour Density and Ionisation of Anthocyanins}
+
+Relation between wine colour density "x4" and degree of ionisation of anthocyanins "x9".
+Method is the same as before define interaction variable and run the model. 
+
+<<results=tex>>=
+iondens<-data[,c("x_4","x_1","x_9","x_10")]
+iondens$int<-data$x_1*data$x_9
+fit2<-lm(x_4~factor(x_1)+x_9+int,data=iondens)
+print(xtable(summary(fit2)))
+@
+
+Here, we have a potentially contradictory result with the paper. Our overall regression is
+significant, however there is no differnce intercepts i.e. the value factor"x-1"1 is 
+not statistically significant differnce in intercepts between Cabernet and Shiraz. The
+paper does not mention this but the way the lines are drawn it makes it seem like there is 
+one. The paper is correct on the note that the slopes are different, the interaction variable
+is negative and has is statistically significant which shows that the slope for the Shiraz wine 
+is lower than Cabernet. However, the statement that the difference in slopes is certain with an 
+alpha of 0.05 is misleading as the p-value of the t-test on the interaction variable
+is slightly greater than 0.05. Since the data set is quite small and it is not much 
+greater than 0.05, we can say it is significant. 
+<<>>=
+inflm<-influence.measures(fit2)
+table<-summary(inflm)
+@
+
+We can see that that there is some slight influence in point 8. As the cook's D
+statistic is greater than the 4/n rule of thumb. We can try removing the observation
+and re-running the model to see if anything changes.
+
+<<results=tex>>=
+iondens2<-iondens[1:31,]
+iondens2$int<-iondens2$x_1*iondens2$x_9
+fit2_2<-lm(x_4~factor(x_1)+x_9+int,data=iondens2)
+print(xtable(summary(fit2_2)))
+@
+
+From this we can see that some of the values have changed, this could be because of 
+the reduction in the degrees of freedom or the removal of an influential observation.
+The Rsquared value actually increased from 0.6974 to 0.7013 leads me to believe that 
+observation 32 did have an adverse effect on our model. With observation 32 removed
+the int variable becomes less significant than it was before, as such we can say 
+that there is no significan difference in the slopes between Cabernet and Shiraz 
+variables.
+
+<<results=tex>>=
+iondens$int<-data$x_1*data$x_10
+fit3<-lm(x_4~factor(x_1)+x_10+int,data=iondens)
+print(xtable(summary(fit3)))
+@
+
+This is another contradictory result. The coefficient of constituent term x1 is not 
+statisically different than zero. The paper mentions specifically that the intercept
+term is different than zero, according to our tests it is not.
+
+<<>>=
+inflm<-influence.measures(fit3)
+table<-summary(inflm)
+@
+
+Observation 4 seems to have some influence, we can try removing it see what happens.
+<<results=tex>>=
+iondens3<-iondens[-4,]
+iondens3$int<-iondens3$x_1*iondens3$x_10
+fit3_2<-lm(x_4~factor(x_1)+x_10+int,data=iondens3)
+print(xtable(summary(fit3_2)))
+@
+
+Int and our dummy variable changed alot, but they are still statistically insqignificant. 
+
+
+\textbf{Figure 4: Polymetric Pgiments and Anthocynins}
+
+I am not going to worry about pigment-total anthocyanins plot as there is clearly
+no linear relationship there, or of any other kind for that matter.
+
+<<results=tex>>=
+pigment<-data[,c("x_6","x_1","x_10")]
+pigment$int<-pigment$x_1*pigment$x_10
+fit4<-lm(x_6~factor(x_1)+x_10+int,data=pigment)
+print(xtable(summary(fit4)))
+@
+
+In this case, as in some of the others there the intercept value does end up being
+statistically insignificant. I believe this is a result of the use of interaction
+variables in addition to the use of dummy variables. 
+
+
+<<>>=
+inflm<-influence.measures(fit4)
+table<-summary(inflm)
+@
+
+The fourth observation has quite a high cook's d value we should look at its 
+effect on the model.
+
+<<results=tex>>=
+pigment2<-pigment[-4,]
+pigment2$int<-pigment2$x_1*pigment2$x_10
+fit4_2<-lm(x_6~factor(x_1)+x_10+int,data=pigment2)
+print(xtable(summary(fit4_2)))
+@
+
+This point was clearly quite influential as we can see that the slope value on the
+variable x-10 changed by 4. This did not change th significance of the other parameters.
+
+\textbf{Figure 5: Quality Ratings and Degree of Ionisation of anthocyanins}
+
+<<results=tex>>=
+quality<-data[,c("y","x_1","x_9")]
+quality$int<-quality$x_1*quality$x_9
+fit5<-lm(y~factor(x_1)+x_9+int,data=quality)
+print(xtable(summary(fit5)))
+@
+
+The paper shows the plot of this regression as two distinct paprallel lines. This however, 
+is not supported by our analysis. We do not get a significant change of slope. The regression
+is significant like the paper states. 
+
+<<>>=
+inflm<-influence.measures(fit5)
+table<-summary(inflm)
+@
+
+Cook's D values are all quite low and therefore we do not need to do anything here. 
+
+
+\section*{MLR}
+
+In this section we seek to build a predictive model for wine quality.
+
+First we check for multicolinearity
+
+<<>>=
+cor<-cor(data[,2:11])
+round(cor,3)
+@
+
+We see some very high correlations such 0.959 and 0.937. Suggesting high multicolinearity.
+
+<<>>=
+eig<-eigen(cor)
+round(eig$val,4)
+@
+
+Similarly some of the eigenvalues are quite low as well.
+
+\textbf{Model Testing}
+
+We do this mostly because we can, it would be interesting to see the predictive 
+value of the Ridge regression when we have some obviously theoretically linked values
+such degree of ionization of anthocynins in percent and ionized anthocynins total. I will perform 
+Ridge Regression and then perform variable selection and compare the resulting models.
+My methodology will be as follows. I will split the data into a learning and testing set. 
+The learning test wil bewhat I calibrate the models on and testing will be what I evaluate them on. 
+
+<<>>=
+splitdf <- function(dataframe, seed=105) {
+    if (!is.null(seed)) set.seed(seed)
+    index <- 1:nrow(dataframe)
+    trainindex <- sample(index, trunc(length(index)/2))
+    trainset <- dataframe[trainindex, ]
+    testset <- dataframe[-trainindex, ]
+    list(trainset=trainset,testset=testset)
+}
+sets<-splitdf(data)
+train<-sets$trainset
+test<-sets$testset
+@
+
+We split our data set into two randomly selected halfs. Now we will perform our regressions.
+
+\textbf{Ridge Regression}
+
+<<fig=TRUE>>=
+library(MASS)
+x<-scale(train[,2:11])
+y<-train$y-mean(train$y)
+lambdas <- seq(0,25,by = 0.5)
+eg.lmr<- lm.ridge(y~-1+x,lambda=lambdas)
+plot(lambdas,eg.lmr$GCV,pch = 21, bg="red",xlab = "lambda",ylab="GCV")
+lambda.min = lambdas[as.numeric(which(eg.lmr$GCV
+==min(eg.lmr$GCV)))]
+abline(v=lambda.min,lwd=2,col="blue")
+eg.lmr0 = lm.ridge(y~-1+x,lambda=lambda.min)
+@
+
+We know our lambda now we will test our model on the test data set.
+
+<<>>=
+predicted_ridge<-1:16
+for (i in 1:length(test)) {
+    x0<-test[i,2:11]
+    x0.star = scale(x0,center=attr(x,"scaled:center"), scale=attr(x,"scaled:scale"))
+    y0<-sum(eg.lmr0$coef*x0.star)+mean(train$y)
+    predicted_ridge[i]<-y0
+}
+@
+\newpage
+\textbf{Variable Selection Method}
+
+Will use basic stepwise selection, using both directions. 
+
+<<results=hide>>=
+fit_null<-lm(y~factor(x_1)+x_2+x_3+x_4+x_5+x_6+x_7+x_8+x_9+x_10,data=train)
+step3<-stepAIC(fit_null, direction="both")
+@
+
+<<results=tex>>=
+print(xtable(summary(step3)))
+@
+
+We see that we end up using x-2 "ph", x-3 "Total S02",x-4-"color density" and x-5 wine colour.
+Now to see how well our model fares with the test data set.
+
+<<results=tex>>=
+predicted_step<-predict(step3,test)
+results<-data.frame(test$y,predicted_ridge,predicted_step)
+print(xtable(results))
+@
+
+As we can can see the ridge seemed to have slighly better predicitive value than
+the model chosen by stepwise regression. If we want to look at a very basic numeric summary
+of predictive value, mean squared error.
+
+<<resutls=tex>>=
+results$error_ridge<-results[,1]-results[,2]
+results$error_step<-results[,1]-results[,3]
+mse_ridge<-sum(results$error_ridge^2)/15
+mse_step<-sum(results$error_step^2)/15
+mse_ridge
+mse_step
+@
+
+Clearly, the Ridge regression outperformed stepwise model selection for
+train and test data sets. One should note that this was for a very small data set
+these kinds of results are very unreliable and I would not speculate in the wine 
+market using any of these models. For example, if we set the set as something different
+I would wager we would get drastically different results.
+\end{document}

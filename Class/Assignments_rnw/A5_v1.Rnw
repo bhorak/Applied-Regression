@@ -1,0 +1,66 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\section*{Question 1:d}
+
+<<>>=
+data<-read.csv("cement.csv")
+cor<-cor(data[,2:5])
+round(cor,3)
+@
+
+We see some very high correlation like 0.973 and .824. Nex we look at eigenvalues.
+
+
+<<>>=
+eig<-eigen(cor)
+round(eig$val,4)
+@
+
+We also see some very low eigenvalues such as 0.0016.This and the high correlation
+value indicates that we have multicolliniearity. 
+
+<<fig=TRUE>>=
+library(MASS)
+x<-scale(data[,2:5])
+y<-data$y-mean(data$y)
+lambdas <- seq(0,0.6,by = 0.010)
+eg.lmr<- lm.ridge(y~-1+x,lambda=lambdas)
+plot(lambdas,eg.lmr$GCV,pch = 21, bg="red",xlab = "lambda",ylab="GCV")
+lambda.min = lambdas[as.numeric(which(eg.lmr$GCV
+==min(eg.lmr$GCV)))]
+abline(v=lambda.min,lwd=2,col="blue")
+eg.lmr0 = lm.ridge(y~-1+x,lambda=lambda.min)
+@
+
+From the plot we see that the ideal lambda value for our regression is 0.32.
+
+Prediction with new observation
+
+<<>>=
+x0 <- cbind(10,50,20,40)
+x0.star = scale(x0,center=attr(x,"scaled:center"), scale=attr(x,"scaled:scale"))
+y0<-sum(eg.lmr0$coef*x0.star)+mean(data$y)
+print(y0)
+@
+
+Thus our new prediction is 94.2111 from the ridge regression model and a lambda
+0.32. Now to compare with our regular model.
+
+<<>>=
+fit<-lm(y~x1+x2+x3+x4,data=data)
+predict(fit,newdata=data.frame(x1=10,x2=50,x3=20,x4=40))
+@
+
+
+With the old regression model our prediction become 99.70052. Considerably higher.
+
+
+
+
+
+
+
+\end{document}
